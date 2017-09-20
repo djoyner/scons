@@ -419,6 +419,35 @@ class TreePrinter(object):
         SCons.Util.print_tree(t, func, prune=self.prune, showtags=s)
 
 
+class GraphPrinter(object):
+    def __init__(self, path):
+        self.path = path
+    def _write_node(self, f, root, node, visited):
+        node_id = id(node)
+        if node_id in visited:
+            return
+        visited[node_id] = 1
+        if node is root:
+            attrs = 'label="%s",root=true,tag=root' % node
+        else:
+            if isinstance(node, SCons.Node.FS.Dir):
+                tag = 'dir'
+            elif node.is_derived():
+                tag = 'derived'
+            else:
+                tag = 'source'
+            attrs = 'label="%s",tag=%s' % (node, tag)
+        f.write('  n%d [%s];\n' % (node_id, attrs))
+        for child in node.all_children():
+            f.write('  n%d -> n%d;\n' % (id(child), node_id))
+            self._write_node(f, root, child, visited)
+    def display(self, t):
+        with open(self.path, 'w') as f:
+            f.write('strict digraph {\n')
+            self._write_node(f, t, t, {})
+            f.write('}\n')
+
+
 def python_version_string():
     return sys.version.split()[0]
 
@@ -666,6 +695,8 @@ def _set_debug_values(options):
         SCons.Taskmaster.print_prepare = 1
     if "duplicate" in debug_values:
         SCons.Node.print_duplicate = 1
+    if "graph" in debug_values:
+        options.tree_printers.append(GraphPrinter(path=os.environ.get("SCONS_GRAPH", "scons.gv")))
 
 def _create_path(plist):
     path = '.'

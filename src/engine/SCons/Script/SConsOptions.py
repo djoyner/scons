@@ -627,7 +627,7 @@ def Parser(version):
         "tree"          : '; please use --tree=all instead',
     }
 
-    debug_options = ["count", "duplicate", "explain", "findlibs",
+    debug_options = ["count", "duplicate", "explain", "findlibs", "graph",
                      "includes", "memoizer", "memory", "objects",
                      "pdb", "prepare", "presub", "stacktrace",
                      "time"]
